@@ -1,15 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F44336"
+    android:layout_height="wrap_content"
     tools:context=".HomeFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <!-- GridView đầu tiên -->
+    <GridView
+        android:id="@+id/gridView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="282dp"
+        android:gravity="center"
+        android:horizontalSpacing="16dp"
+        android:numColumns="2"
+        android:layout_marginBottom="16dp"
+        android:padding="16dp"
+        android:verticalSpacing="16dp"
+        android:layout_gravity="top|start" />
 
+    <!-- TextView -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <GridView
+            android:id="@+id/gridview2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="344dp"
+            android:numColumns="3"
+            android:verticalSpacing="32dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textview1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginBottom="8dp"
+            android:padding="16dp"
+
+            android:text="Tuyển tập hàng đầu của bạn"
+            android:textSize="26sp"
+            app:layout_constraintBottom_toTopOf="@+id/gridview2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- GridView mới -->
 </FrameLayout>
+
+
+
+
+
+
