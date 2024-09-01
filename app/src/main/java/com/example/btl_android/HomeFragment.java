@@ -1,8 +1,10 @@
 package com.example.btl_android;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -10,7 +12,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -114,12 +119,54 @@ public class HomeFragment extends Fragment {
 
 
 
+
         adapter = new MyAdapter(itemArrayList, getContext());
         gridView.setAdapter(adapter);
 
 
         adapter2 = new MyAdapter2(item2ArrayList, getContext());
         gridView2.setAdapter(adapter2);
+
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Item item = itemArrayList.get(position);
+                //Goi fragment moi
+                Fragment baiHat = new BaiHat();
+                Bundle args = new Bundle();
+                args.putString("tenBaiHat", item.getTenBaiHat());//lay ten
+                args.putString("tenCaSi", item.getTenCaSi());//lay ten ca si
+                args.putInt("Anh", item.getItemImg());
+
+                baiHat.setArguments(args);
+                // Thay thế fragment
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.frameLayout, baiHat) // R.id.fragment_container là ID của container chứa fragment
+                        .addToBackStack(null) // Cho phép quay lại fragment trước đó khi nhấn nút Back
+                        .commit();
+
+
+            }
+        });
+
+        gridView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Fragment fr_songList = new SongList();
+
+                // Thay thế fragment
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.frameLayout, fr_songList) // R.id.frameLayout là ID của container chứa fragment
+                        .addToBackStack(null) // Cho phép quay lại fragment trước đó khi nhấn nút Back
+                        .commit();
+            }
+        });
+
+
+
+
+
 
 
         return view;
