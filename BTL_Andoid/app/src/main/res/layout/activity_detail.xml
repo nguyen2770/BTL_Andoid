@@ -122,10 +122,33 @@
         android:id="@+id/imgv_fav"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginTop="600dp"
-        android:layout_marginEnd="184dp"
+        android:layout_marginTop="28dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgv_play"
         app:srcCompat="@drawable/baseline_favorite_border_24" />
+
+    <ImageView
+        android:id="@+id/imgv_repeat"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="28dp"
+        android:src="@drawable/baseline_repeat_24"
+        app:layout_constraintEnd_toStartOf="@+id/imgv_fav"
+        app:layout_constraintHorizontal_bias="0.294"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgv_play" />
+
+    <ImageView
+        android:id="@+id/imgv_shuffle"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="28dp"
+        android:src="@drawable/baseline_shuffle_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.703"
+        app:layout_constraintStart_toEndOf="@+id/imgv_fav"
+        app:layout_constraintTop_toBottomOf="@+id/imgv_play" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

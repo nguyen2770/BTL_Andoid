@@ -15,7 +15,7 @@
         <ImageView
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/tunebox"
+            android:src="@drawable/account_img"
             android:background="@drawable/circle_image"
             android:scaleType="centerCrop"
             android:clipToOutline="true"

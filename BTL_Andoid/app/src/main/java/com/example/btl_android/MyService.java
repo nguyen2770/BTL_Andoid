@@ -47,23 +47,19 @@ public class MyService extends Service {
     public static final int ACTION_SEEK = 5, ACTION_DESTROY = 10 ;
     public static final String ACTION_UPDATE_POSITION = "UPDATE_POSITION", SETUP_ANIMATIONMUSIC = "SETUP_ANIMATION";
     public static final int START_ANIMATION = 7, STOP_ANIMATION = 8, RESTART_ANIMATION = 9;
-    //Yeu thich
-    public static final int ACTION_FAV = 11;
+    //Lap lai bai hat
+//    public static final int ACTION_REPEAT = 11; // Add this line for the repeat action
+
 
     int curentPosition;
     private boolean isPlayMusic = true;
+    private boolean isRepeat = false;
+
     private Song msong, oldSong;
     private List<Song> songList;
     private int crentIndex;
     Context context;
 
-//    @Override
-//    public void onCreate() {
-//        Log.e("nguyen", "My service start");
-//
-//
-//        super.onCreate();
-//    }
     @Override
     public void onCreate() {
         super.onCreate();
@@ -111,31 +107,56 @@ public class MyService extends Service {
     }
 
 
-    private void updateSeekbar() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (mediaPlayer != null) {
-                    try {
-
+//    private void updateSeekbar() {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (mediaPlayer != null) {
+//                    try {
+//
+//                        Intent broadcastIntent = new Intent(ACTION_UPDATE_POSITION);
+//                        broadcastIntent.putExtra("current_position", mediaPlayer.getCurrentPosition());
+//                        broadcastIntent.putExtra("media_duration", mediaPlayer.getDuration());
+//                        LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(broadcastIntent);
+//                        Thread.sleep(1000); // Ngủ trong 1 giây
+//
+//
+//
+//                    } catch (InterruptedException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//
+//                }
+//            }
+//        }).start();
+//
+//
+//    }
+    //Cuong
+private void updateSeekbar() {
+    new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while (mediaPlayer != null) {
+                try {
+                    // Kiểm tra MediaPlayer trước khi gọi getCurrentPosition
+                    if (mediaPlayer.isPlaying()) {
                         Intent broadcastIntent = new Intent(ACTION_UPDATE_POSITION);
                         broadcastIntent.putExtra("current_position", mediaPlayer.getCurrentPosition());
                         broadcastIntent.putExtra("media_duration", mediaPlayer.getDuration());
                         LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(broadcastIntent);
-                        Thread.sleep(1000); // Ngủ trong 1 giây
-
-
-
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
                     }
-
+                    Thread.sleep(1000); // Ngủ trong 1 giây
+                } catch (IllegalStateException e) {
+                    Log.e("MyService", "MediaPlayer is not in a valid state", e);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-        }).start();
+        }
+    }).start();
+}
 
-
-    }
 
 
     private void startMusic(Song song) {
@@ -196,18 +217,31 @@ public class MyService extends Service {
             case ACTION_DESTROY:
                 onDestroy();
                 break;
+//            case ACTION_REPEAT:
+//                toggleRepeat();
+//                break;
 
             default:
 
         }
     }
 
+
+
+
+
     private void ActionSeek() {
         mediaPlayer.seekTo(curentPosition);
     }
 
 
-
+//
+//    private void toggleRepeat() {
+//        isRepeat = !isRepeat;
+//        mediaPlayer.setLooping(isRepeat);  // Bật/tắt chế độ lặp của MediaPlayer
+//        Log.d("MyService", "isRepeat: " + isRepeat);
+//        sendNotification(msong);
+//    }
 
     private void preMusic() {
         if (crentIndex > 0) {
@@ -226,6 +260,7 @@ public class MyService extends Service {
         }
 
     }
+
 
     private void nextMusic() {
 
@@ -321,6 +356,10 @@ public class MyService extends Service {
                                         getPendingIntent(MyService.this, isPlayMusic ? ACTION_PAUSE : ACTION_RESUME)) // #1
                                 .addAction(R.drawable.baseline_skip_next_24, "Next", getPendingIntent(MyService.this, ACTION_NEXT)) // #2
 
+
+
+
+
                                 // Apply the media style template.
                                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                                         .setShowActionsInCompactView(1)
@@ -372,17 +411,29 @@ public class MyService extends Service {
     }
 
 
-    @Override
-    public void onDestroy() {
-        Log.e("Nguyen", "My service stop");
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
-        stopForeground(true);  // Tắt thông báo
-        stopSelf();  // Dừng dịch vụ
-        super.onDestroy();
+//    @Override
+//    public void onDestroy() {
+//        Log.e("Nguyen", "My service stop");
+//        if (mediaPlayer != null) {
+//            mediaPlayer.release();
+//            mediaPlayer = null;
+//        }
+//        stopForeground(true);  // Tắt thông báo
+//        stopSelf();  // Dừng dịch vụ
+//        super.onDestroy();
+//    }
+    //Cuong
+@Override
+public void onDestroy() {
+    if (mediaPlayer != null) {
+        mediaPlayer.release();
+        mediaPlayer = null;
     }
+    stopForeground(true);
+    stopSelf();
+    super.onDestroy();
+}
+
 
 
 

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.btl_android.modal.Song;
 
@@ -25,11 +26,25 @@ public class DBManager {
         db = dbHelper.getWritableDatabase();
         return this;
     }
+    // Thêm phương thức getDb để trả về đối tượng SQLiteDatabase
+    public SQLiteDatabase getDb() {
+        return db;
+    }
     //Viet phuong thuc dong ket noi
     public void close(){
         dbHelper.close();
     }
-    public void addUser(String fullName, String phoneNumber, String password, String email) {
+
+public void addUser(String fullName, String phoneNumber, String password, String email) {
+    // Kiểm tra xem số điện thoại đã tồn tại trong bảng User hay chưa
+    Cursor cursor = db.query("User", new String[]{"phoneNumber"}, "phoneNumber = ?", new String[]{phoneNumber}, null, null, null);
+
+    if (cursor != null && cursor.getCount() > 0) {
+        // Nếu tìm thấy số điện thoại, đóng cursor và thông báo trùng số điện thoại
+        cursor.close();
+        Toast.makeText(context, "Số điện thoại đã tồn tại. Vui lòng nhập số khác.", Toast.LENGTH_SHORT).show();
+    } else {
+        // Nếu không tìm thấy số điện thoại, thêm người dùng mới
         ContentValues values = new ContentValues();
         values.put("fullName", fullName);
         values.put("phoneNumber", phoneNumber);
@@ -38,34 +53,20 @@ public class DBManager {
 
         db.insert("User", null, values);
     }
+}
 
-    // Hàm kiểm tra thông tin đăng nhập
-//    public String checkUserLogin(String phoneNumber, String password) {
-//        Cursor cursor = db.query("User",
-//                new String[]{"fullName"},
-//                "phoneNumber=? AND password=?",
-//                new String[]{phoneNumber, password},
-//                null, null, null);
-//
-//        if (cursor != null && cursor.moveToFirst()) {
-//            String fullName = cursor.getString(cursor.getColumnIndex("fullName"));
-//            cursor.close();
-//            return fullName; // Trả về tên người dùng nếu đăng nhập thành công
-//        }
-//
-//        return null; // Trả về null nếu đăng nhập thất bại
-//    }
+
     public String[] checkUserLogin(String phoneNumber, String password) {
-        // Thực hiện truy vấn để kiểm tra thông tin đăng nhập
-        Cursor cursor = db.query("User", new String[]{"id", "fullName"}, "phoneNumber=? AND password=?",
+        Cursor cursor = db.query("User", new String[]{"id", "fullName", "email"}, "phoneNumber=? AND password=?",
                 new String[]{phoneNumber, password}, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
-            String id = cursor.getString(cursor.getColumnIndex("id")); // Lấy id
-            String fullName = cursor.getString(cursor.getColumnIndex("fullName")); // Lấy fullName
+            String id = cursor.getString(cursor.getColumnIndex("id"));
+            String fullName = cursor.getString(cursor.getColumnIndex("fullName"));
+            String email = cursor.getString(cursor.getColumnIndex("email"));
             cursor.close();
-            return new String[]{id, fullName}; // Trả về một mảng chứa id và fullName
+            return new String[]{id, fullName, email};
         }
-        return null; // Nếu không tìm thấy, trả về null
+        return null;
     }
 
     public boolean isFavoriteSong(int userId, String songId) {
@@ -108,6 +109,25 @@ public class DBManager {
         }
 
         return songIds;
+    }
+    public void updateUser(int userId, String fullName, String phoneNumber, String password, String email) {
+        if (db == null || !db.isOpen()) {
+            throw new IllegalStateException("Database is not opened. Call open() before using the database.");
+        }
+        ContentValues values = new ContentValues();
+        values.put("fullName", fullName);
+        values.put("phoneNumber", phoneNumber);
+        values.put("email", email);
+        if (password == null || password.isEmpty()) {
+            Cursor cursor = db.rawQuery("SELECT password FROM User WHERE id = ?", new String[]{String.valueOf(userId)});
+            if (cursor.moveToFirst()) {
+                password = cursor.getString(cursor.getColumnIndexOrThrow("password"));
+            }
+            cursor.close();
+        }
+        values.put("password", password);
+
+        db.update("User", values, "id = ?", new String[]{String.valueOf(userId)});
     }
 
     public Song getSongDetailsFromApi(String songId) {

@@ -197,38 +197,10 @@ public class HomeFragment extends Fragment {
         rcv_AlbumMain.setAdapter(albumsAdapter);
 
     }
-
-//    private void callApi(Context context){
-//        ApiService.apiService.getSongs().enqueue(new Callback<ListSongs>() {
-//            @Override
-//            public void onResponse(Call<ListSongs> call, Response<ListSongs> response) {
-//                Toast.makeText(context, "Call Api succes", Toast.LENGTH_SHORT).show();
-//                ListSongs listSongs = response.body();
-//                if(listSongs!=null) {
-//                    songs = listSongs.getSongs();
-//                    setDataForAdaterMusic(context);
-//
-//                    songManager = new SongManager();
-//                    albums = songManager.setAlbum(songs);
-//                    setDataForAdapterAlbum(context);
-//
-//                }else{
-//                    Log.e("lỗi ", "danh sách null");
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<ListSongs> call, Throwable t) {
-//                Log.e("API Error", t.getMessage());
-//                Toast.makeText(context, "Call Api error", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//
-//
-//    }
     private void  onClickGoToDetail(Context context, Song song, List<Song> songList){
 
     }
+
 
 
 }

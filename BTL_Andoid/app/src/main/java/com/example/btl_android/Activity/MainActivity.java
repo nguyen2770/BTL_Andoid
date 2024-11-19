@@ -65,13 +65,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-//    private Fragment homeFragment = new HomeFragment();
-//    private Fragment searchFragment = new SearchFragment();
-//    private Fragment loveFragment = new LoveFragment();
-//    private Fragment userFragment = new UserFragment();
-//    private Fragment listFragment = new ListFragment();
-//    private Fragment activeFragment = homeFragment;
-
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -132,31 +125,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.e("mainactivity", "song not null");
         }
-        // Thêm tất cả các Fragment nhưng chỉ hiển thị HomeFragment ban đầu
-
-//        getSupportFragmentManager().beginTransaction().add(R.id.frameLayout, listFragment, "5").hide(listFragment).commit();
-//        getSupportFragmentManager().beginTransaction().add(R.id.frameLayout, userFragment, "4").hide(userFragment).commit();
-//        getSupportFragmentManager().beginTransaction().add(R.id.frameLayout, loveFragment, "3").hide(loveFragment).commit();
-//        getSupportFragmentManager().beginTransaction().add(R.id.frameLayout, searchFragment, "2").hide(searchFragment).commit();
-//        getSupportFragmentManager().beginTransaction().add(R.id.frameLayout, homeFragment, "1").commit();
-//
-//        menuView.setOnItemSelectedListener(item -> {
-//            int ID = item.getItemId();
-//            if (ID == R.id.home) {
-//                showFragment(homeFragment);
-//            } else if (ID == R.id.search) {
-//                showFragment(searchFragment);
-//            } else if (ID == R.id.love) {
-//                showFragment(loveFragment);
-//            } else if (ID == R.id.user) {
-//                showFragment(userFragment);
-//            }
-//            return true;
-//        });
-
-        //replaceDataFragment(new HomeFragment());
-
-        //
         menuView.setOnItemSelectedListener(item -> {
 
             int ID = item.getItemId();
@@ -236,13 +204,6 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commit();
     }
 
-    // chỉ ẩn fragment cũ đi và hiện fragment mới lên <lưu lại trạng thais của frgment khi chuyển đôi"
-//    private void showFragment(Fragment fragment) {
-//        if (fragment != activeFragment) {
-//            getSupportFragmentManager().beginTransaction().hide(activeFragment).show(fragment).commit();
-//            activeFragment = fragment;
-//        }
-//    }
 
     private void replaceDataFragment(Fragment fragment) {
 

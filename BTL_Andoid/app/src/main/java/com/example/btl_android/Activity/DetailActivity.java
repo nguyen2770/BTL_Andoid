@@ -16,6 +16,7 @@ import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +30,7 @@ import com.example.btl_android.Database.DBHelper;
 import com.example.btl_android.Database.DBManager;
 import com.example.btl_android.MyService;
 import com.example.btl_android.R;
+import com.example.btl_android.login.LoginDialogFragment;
 import com.example.btl_android.modal.Song;
 import com.example.btl_android.modal.SongManager;
 
@@ -41,7 +43,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class DetailActivity extends AppCompatActivity {
 
-    ImageView imgv_play, imgv_pre, imgv_next, img_back, imgv_fav;
+    ImageView imgv_play, imgv_pre, imgv_next, img_back, imgv_fav, imgv_repeat, imgv_shuffle;
     CircleImageView img_DetailImage;
     TextView txt_DetailNameSong, txt_DetailNameTG, txt_playerPosition, txt_playerDuration;
     SeekBar seekBarTime;
@@ -50,11 +52,8 @@ public class DetailActivity extends AppCompatActivity {
     private int currentSongIndex;
     private SongManager songManager = new SongManager();
     private DBManager db;
-
-
-
     private boolean isPlaying;
-
+    private boolean isRepeat;
     private BroadcastReceiver positionReceiver, Animation_manager, setDataActivity;
 
     @Override
@@ -85,7 +84,7 @@ public class DetailActivity extends AppCompatActivity {
         onClickNext();
         onClickPause_Start();
         onClickBack();
-
+//*
         onClickFavorite();
 
 
@@ -103,10 +102,15 @@ public class DetailActivity extends AppCompatActivity {
         if(songList != null){
             Log.d("onCreate: ", "ko null");
         }
-        //
         SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        int currentUserId = Integer.parseInt(sharedPreferences.getString("userId", null));
-        updateFavoriteIcon(currentUserId, currentSong.getId());
+        String currentUserId = sharedPreferences.getString("userId", null);
+        if(currentUserId != null){
+            int userId = Integer.parseInt(currentUserId);
+            updateFavoriteIcon(userId, currentSong.getId());
+        }
+
+
+
 
 
 
@@ -129,11 +133,15 @@ public class DetailActivity extends AppCompatActivity {
                 imgv_play.setImageResource(R.drawable.baseline_pause_circle_outline_24);
                 break;
 
+
+
             default:
 
         }
 
     }
+
+
 
 
 
@@ -147,7 +155,6 @@ public class DetailActivity extends AppCompatActivity {
 
     // xử lý sự kiện dừng bài hát
     private void onClickPause_Start() {
-
         imgv_play.setOnClickListener(v->{
             if(isPlaying){
                 imgv_play.setImageResource(R.drawable.baseline_play_circle_outline_24);
@@ -157,9 +164,19 @@ public class DetailActivity extends AppCompatActivity {
                 sendActionToService(MyService.ACTION_RESUME);
             }
         });
-
-
     }
+//    private void onClickRepeat() {
+//        imgv_repeat.setOnClickListener(view -> {
+////            sendActionToService(MyService.ACTION_REPEAT);
+//            if(isRepeat){
+//                imgv_repeat.setImageResource(R.drawable.baseline_repeat_24);
+//                sendActionToService(MyService.ACTION_REPEAT);
+//            }else{
+//                imgv_repeat.setImageResource(R.drawable.baseline_repeat_24_true);
+//                sendActionToService(MyService.ACTION_REPEAT);
+//            }
+//        });
+//    }
 
     // xử lý sự kiện next sang bài hát khác
     private void onClickNext() {
@@ -185,28 +202,39 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
     }
-    private void toggleFavorite(int userId, String songId) {
-        DBManager dbManager = new DBManager(this); // Khởi tạo DBManager với context
-        dbManager.open(); // Mở kết nối tới cơ sở dữ liệu
 
-        if (dbManager.isFavoriteSong(userId, songId)) {
-            dbManager.removeFavoriteSong(userId, songId);
-            imgv_fav.setImageResource(R.drawable.baseline_favorite_border_24); // Cập nhật icon
-        } else {
-            dbManager.addFavoriteSong(userId, songId);
-            imgv_fav.setImageResource(R.drawable.baseline_favorite_24); // Cập nhật icon
-        }
-
-        dbManager.close(); // Đóng kết nối sau khi thực hiện xong
-    }
-
-
-    private void onClickFavorite() {
+    private void onClickFavorite(){
         SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        int currentUserId = Integer.parseInt(sharedPreferences.getString("userId", null)); // Lấy ID của người dùng
+        String currentUserId = sharedPreferences.getString("userId", null);
+        //Chua dang nhap
+        if(currentUserId == null){
+//            imgv_fav.setEnabled(false); // Vô hiệu hóa nút yêu thích
+            imgv_fav.setOnClickListener(view -> {
+                Toast.makeText(this, "Ban chua dang nhap", Toast.LENGTH_SHORT).show();
 
-        imgv_fav.setOnClickListener(v -> toggleFavorite(currentUserId, currentSong.getId()));
+            });
+        }
+        //Da dang nhap
+        else{
+            int userId = Integer.parseInt(currentUserId);
+            imgv_fav.setOnClickListener(v -> {
+                DBManager dbManager = new DBManager(this); // Khởi tạo DBManager với context
+                dbManager.open(); // Mở kết nối tới cơ sở dữ liệu
+
+                if (dbManager.isFavoriteSong(userId, currentSong.getId())) {
+                    dbManager.removeFavoriteSong(userId, currentSong.getId());
+                    imgv_fav.setImageResource(R.drawable.baseline_favorite_border_24); // Cập nhật icon
+                } else {
+                    dbManager.addFavoriteSong(userId, currentSong.getId());
+                    imgv_fav.setImageResource(R.drawable.baseline_favorite_24); // Cập nhật icon
+                }
+
+                dbManager.close();
+            });
+
+        }
     }
+
 
     private void updateFavoriteIcon(int userId, String songId) {
         DBManager dbManager = new DBManager(this);
@@ -222,8 +250,6 @@ public class DetailActivity extends AppCompatActivity {
     }
 
 
-
-
     private void mappingID(){
         img_DetailImage = findViewById(R.id.img_detaiImage);
         txt_DetailNameSong = findViewById(R.id.txt_detalNameSong);
@@ -236,6 +262,8 @@ public class DetailActivity extends AppCompatActivity {
         seekBarTime = findViewById(R.id.seekBarTime);
         img_back = findViewById(R.id.imageButton);
         imgv_fav = findViewById(R.id.imgv_fav);
+        imgv_repeat = findViewById(R.id.imgv_repeat);
+        imgv_shuffle = findViewById(R.id.imgv_shuffle);
     }
 
 

@@ -57,46 +57,12 @@ public class LoginDialogFragment extends DialogFragment {
         dbManager = new DBManager(getContext());
         dbManager.open(); // Mở kết nối database
 
-        // Xử lý sự kiện khi nhấn nút đăng nhập
-//        btnLogin.setOnClickListener(v -> {
-//            String phoneNumber = etPhoneNumber.getText().toString().trim();
-//            String password = etPassword.getText().toString().trim();
-//
-//            if (phoneNumber.isEmpty() || password.isEmpty()) {
-//                Toast.makeText(getActivity(), "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
-//            } else {
-//                // Kiểm tra đăng nhập từ cơ sở dữ liệu
-//                String fullName = dbManager.checkUserLogin(phoneNumber, password);
-//
-//
-//                if (fullName != null) {
-//                    // Nếu đăng nhập thành công, lưu trạng thái đăng nhập
-//                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-//                    SharedPreferences.Editor editor = sharedPreferences.edit();
-//                    editor.putBoolean("isLoggedIn", true);  // Lưu trạng thái đã đăng nhập
-//                    editor.putString("userName", fullName); // Lưu tên người dùng
-//
-//                    editor.apply();  // Lưu thay đổi
-//
-//                    // Thông báo đăng nhập thành công
-//                    Toast.makeText(getActivity(), fullName + " đăng nhập thành công", Toast.LENGTH_SHORT).show();
-//
-//                    // Gọi callback để cập nhật UserFragment
-//                    if (loginSuccessListener != null) {
-//                        loginSuccessListener.onLoginSuccess();
-//                    }
-//
-//                    // Đóng dialog sau khi đăng nhập thành công
-//                    dismiss();
-//                } else {
-//                    // Nếu sai thông tin đăng nhập, thông báo lỗi
-//                    Toast.makeText(getActivity(), "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//        });
+
         btnLogin.setOnClickListener(v -> {
             String phoneNumber = etPhoneNumber.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
+
+
 
             if (phoneNumber.isEmpty() || password.isEmpty()) {
                 Toast.makeText(getActivity(), "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
@@ -108,6 +74,7 @@ public class LoginDialogFragment extends DialogFragment {
                     // Nếu đăng nhập thành công, lưu trạng thái đăng nhập
                     String id = userInfo[0]; // id
                     String fullName = userInfo[1]; // fullName
+                    String email = userInfo[2]; //email
 
                     SharedPreferences sharedPreferences = getActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -115,6 +82,8 @@ public class LoginDialogFragment extends DialogFragment {
                     editor.putString("userName", fullName); // Lưu tên người dùng
 //                    editor.putString("userId", id); // Lưu id người dùng
                     editor.putString("userId", String.valueOf(id)); // Lưu dưới dạng chuỗi
+                    editor.putString("phoneNumber", phoneNumber);
+                    editor.putString("email", email);
                     editor.apply();  // Lưu thay đổi
 
                     // Thông báo đăng nhập thành công

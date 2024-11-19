@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.btl_android.Activity.DetailActivity;
 import com.example.btl_android.Activity.MainActivity;
@@ -62,15 +63,7 @@ public class LoveFragment extends Fragment {
     MainActivity mainActivity;
     Context context;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment LoveFragment.
-     */
-    // TODO: Rename and change types and number of parameters
+
     public static LoveFragment newInstance(String param1, String param2) {
         LoveFragment fragment = new LoveFragment();
         Bundle args = new Bundle();
@@ -96,6 +89,7 @@ public class LoveFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_love, container, false);
         rcv_favSongs = view.findViewById(R.id.recyclerViewFavorites);
+        TextView txtLoginRequired = view.findViewById(R.id.txtLoginRequired);
         dbManager = new DBManager(getContext());
         dbManager.open();
         favoriteSongs = new ArrayList<>();
@@ -103,26 +97,41 @@ public class LoveFragment extends Fragment {
 
 
 
-        // Thiết lập adapter cho RecyclerView
-        songsAdapter = new SongsAdapter(favoriteSongs, new IClickSongListener() {
-            @Override
-            public void onClickSong(Song song) {
-                List<Song> suggestSong = favoriteSongs; // Sử dụng danh sách bài hát yêu thích
-                mainActivity.gotoDetail(song, suggestSong);
-            }
-        });
-        rcv_favSongs.setLayoutManager(new LinearLayoutManager(getContext()));
-        rcv_favSongs.setAdapter(songsAdapter);
 
+
+
+
+        // Kiểm tra trạng thái đăng nhập
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
         String userIdString = sharedPreferences.getString("userId", "");
-        int userId = Integer.parseInt(userIdString);
 
-        // Lấy danh sách bài hát yêu thích
-        List<String> songIds = dbManager.getFavoriteSongIds(userId); // Giả định bạn có phương thức này để lấy danh sách songId
-        if (songIds != null && !songIds.isEmpty()) {
-            for (String songId : songIds) {
-                callApiToGetSongDetails(songId); // Gọi API để lấy thông tin bài hát theo songId
+        if (userIdString.isEmpty()) {
+            // Người dùng chưa đăng nhập, hiển thị thông báo
+            txtLoginRequired.setVisibility(View.VISIBLE);
+            rcv_favSongs.setVisibility(View.GONE);
+        } else {
+            // Người dùng đã đăng nhập, tiếp tục lấy danh sách bài hát yêu thích
+            int userId = Integer.parseInt(userIdString);
+            rcv_favSongs.setVisibility(View.VISIBLE);
+            txtLoginRequired.setVisibility(View.GONE);
+
+            // Thiết lập adapter cho RecyclerView
+            songsAdapter = new SongsAdapter(favoriteSongs, new IClickSongListener() {
+                @Override
+                public void onClickSong(Song song) {
+                    List<Song> suggestSong = favoriteSongs;
+                    mainActivity.gotoDetail(song, suggestSong);
+                }
+            });
+            rcv_favSongs.setLayoutManager(new LinearLayoutManager(getContext()));
+            rcv_favSongs.setAdapter(songsAdapter);
+
+            // Lấy danh sách bài hát yêu thích của user
+            List<String> songIds = dbManager.getFavoriteSongIds(userId);
+            if (songIds != null && !songIds.isEmpty()) {
+                for (String songId : songIds) {
+                    callApiToGetSongDetails(songId);
+                }
             }
         }
 
@@ -158,7 +167,7 @@ public class LoveFragment extends Fragment {
 
 
 
-    //Yeu thich
+
 
 
     @Override
