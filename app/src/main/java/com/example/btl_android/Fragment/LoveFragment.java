@@ -1,14 +1,30 @@
 package com.example.btl_android.Fragment;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.btl_android.Activity.MainActivity;
+import com.example.btl_android.Adapter.SongsAdapter;
+import com.example.btl_android.Database.DBManager;
+import com.example.btl_android.Interface.IClickSongListener;
 import com.example.btl_android.R;
+import com.example.btl_android.modal.Album;
+import com.example.btl_android.modal.Song;
+import com.example.btl_android.modal.SongManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -29,6 +45,15 @@ public class LoveFragment extends Fragment {
     public LoveFragment() {
         // Required empty public constructor
     }
+
+    private RecyclerView rcv_favSongs;
+    SongsAdapter songsAdapter;
+    private List<Song> favoriteSongs, songList; // Danh sách bài hát yêu thích
+    DBManager dbManager;
+
+    SongManager songManager = new SongManager();
+    MainActivity mainActivity;
+    Context context;
 
     /**
      * Use this factory method to create a new instance of
@@ -60,7 +85,60 @@ public class LoveFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_love, container, false);
+        View view = inflater.inflate(R.layout.fragment_love, container, false);
+        rcv_favSongs = view.findViewById(R.id.recyclerViewFavorites);
+        dbManager = new DBManager(view.getContext());
+        dbManager.open();
+        favoriteSongs = new ArrayList<>();
+        mainActivity = (MainActivity) getActivity(); // Thêm dòng này
+
+        Bundle bundle = getArguments();
+        if(bundle != null){
+            songList  = (List<Song>) bundle.getSerializable("listSongs");
+        }
+
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        String userIdString = sharedPreferences.getString("userId", "");
+        String a = "";
+
+        if(!userIdString.equals(a)){
+            int userId = Integer.parseInt(userIdString);
+            setAdapterSong(view.getContext(),userId);
+        }
+
+
+        return view;
+    }
+
+    private void setAdapterSong(Context context, int userId){
+        // set layout cho music
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+        rcv_favSongs.setLayoutManager(linearLayoutManager);
+        // tạo dòng kẻ cho mỗi item
+        DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
+        rcv_favSongs.addItemDecoration(itemDecoration);
+
+        // Thiết lập adapter cho RecyclerView
+        songsAdapter = new SongsAdapter(favoriteSongs, new IClickSongListener() {
+            @Override
+            public void onClickSong(Song song) {
+                 // Sử dụng danh sách bài hát yêu thích
+                mainActivity.gotoDetail(song, favoriteSongs);
+
+            }
+        });
+        rcv_favSongs.setAdapter(songsAdapter);
+
+        songManager.buildSongMap(songList);
+        // lấy ra danh sách bài hát yêu thích
+        List<String> songIds = dbManager.getFavoriteSongIds(userId); // Giả định bạn có phương thức này để lấy danh sách songId
+        if (songIds != null && !songIds.isEmpty() && songList != null) {
+            for (String songId : songIds) {
+                // lấy ra thông tin bài hát theo songid
+                favoriteSongs.add(songManager.getSongById(songId));
+                songsAdapter.notifyDataSetChanged(); // cập nhập list yêu thích
+            }
+        }
+
     }
 }
