@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:padding="10dp"
+    android:layout_height="64dp">
+
+    <ImageView
+        android:id="@+id/imgSong"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/mygirl"
+        android:scaleType="centerCrop"
+        android:layout_centerVertical="true"/>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/imgSong"
+        android:layout_toStartOf="@+id/img_pre"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_centerVertical="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txt_titleSong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="@android:color/black"
+            android:textSize="11sp"/>
+        <TextView
+            android:id="@+id/txt_singerSong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="10sp"/>
+
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/img_pre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@+id/img_play_or_pause"
+        android:layout_marginEnd="10dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/baseline_skip_previous_24"/>
+
+    <ImageView
+        android:id="@+id/img_play_or_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@+id/img_next"
+        android:layout_marginEnd="10dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/baseline_pause_circle_outline_24"/>
+
+    <ImageView
+        android:id="@+id/img_next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/baseline_skip_next_24"/>
+        
+
+
+
+
+</RelativeLayout>
