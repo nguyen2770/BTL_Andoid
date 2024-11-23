@@ -4,7 +4,6 @@ import static com.example.btl_android.MyApplication.CHANNEL_ID;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -14,11 +13,11 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
-import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,12 +38,12 @@ import java.util.List;
 
 public class MyService extends Service {
     private MediaPlayer mediaPlayer;
-    public static final int ACTION_PAUSE = 1, ACTION_RESUME = 2, ACTION_NEXT = 3, ACTION_PRE = 4, ACTION_START = 6;
-    public static final int ACTION_SEEK = 5, ACTION_DESTROY = 10 ;
+    public static final int ACTION_PAUSE = 1, ACTION_RESUME = 2, ACTION_NEXT = 3, ACTION_PRE = 4, ACTION_START = 6, ACTION_REPLAY = 11, ACTION_AUTONEXT = 12;
+    public static final int ACTION_SEEK = 5, ACTION_DESTROY = 10;
     public static final String ACTION_UPDATE_POSITION = "UPDATE_POSITION", SETUP_ANIMATIONMUSIC = "SETUP_ANIMATION";
     public static final int START_ANIMATION = 7, STOP_ANIMATION = 8, RESTART_ANIMATION = 9;
     int curentPosition;
-    private boolean isPlayMusic = true;
+    private boolean isPlayMusic = true, isReadyToPlay = false;
     private Song msong, oldSong;
     private List<Song> songList;
     private int crentIndex;
@@ -78,6 +77,7 @@ public class MyService extends Service {
                 song = songList.get(crentIndex);
                 msong = song;
                 startMusic(msong);
+                mediaPlayer.setLooping(true);
                 sendNotification(msong);
             } else {
                 System.out.println("song list null");
@@ -93,6 +93,18 @@ public class MyService extends Service {
         updateSeekbar();
 
 
+        if(mediaPlayer != null) {
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    // Thực hiện hành động khi bài hát kết thúc
+
+                    nextMusic();
+
+                }
+            });
+        }
+
         return START_NOT_STICKY;
     }
 
@@ -103,14 +115,13 @@ public class MyService extends Service {
             public void run() {
                 while (mediaPlayer != null) {
                     try {
-
-                        Intent broadcastIntent = new Intent(ACTION_UPDATE_POSITION);
-                        broadcastIntent.putExtra("current_position", mediaPlayer.getCurrentPosition());
-                        broadcastIntent.putExtra("media_duration", mediaPlayer.getDuration());
-                        LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(broadcastIntent);
+                        if(mediaPlayer.isPlaying()){
+                            Intent broadcastIntent = new Intent(ACTION_UPDATE_POSITION);
+                            broadcastIntent.putExtra("current_position", mediaPlayer.getCurrentPosition());
+                            broadcastIntent.putExtra("media_duration", mediaPlayer.getDuration());
+                            LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(broadcastIntent);
+                        }
                         Thread.sleep(1000); // Ngủ trong 1 giây
-
-
 
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
@@ -125,19 +136,19 @@ public class MyService extends Service {
 
 
     private void startMusic(Song song) {
-        if(oldSong != null){
-            if(oldSong.getId().equals(song.getId())) {
+        if (oldSong != null) {
+            if (oldSong.getId().equals(song.getId())) {
                 return;
             }
         }
 
         if (mediaPlayer == null) {
-
             mediaPlayer = new MediaPlayer();
-
         } else {
             mediaPlayer.reset();
         }
+
+
 
 
         oldSong = song;
@@ -151,10 +162,12 @@ public class MyService extends Service {
                 public void onPrepared(MediaPlayer mp) {
                     mediaPlayer.start(); // Bắt đầu phát nhạc khi sẵn sàng
                     isPlayMusic = true;
-                    Log.d( "start music ", "jdjdj");
+                    isReadyToPlay = true;
+                    Log.d("start music ", "jdjdj");
                     sendActiontoActivity(ACTION_START);
                 }
             });
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -182,10 +195,25 @@ public class MyService extends Service {
             case ACTION_DESTROY:
                 onDestroy();
                 break;
+            case ACTION_REPLAY:
+                if(mediaPlayer != null){
+                    mediaPlayer.setLooping(true);
+                }
+                break;
+            case ACTION_AUTONEXT:
+                mediaPlayer.setLooping(false);
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mediaPlayer) {
+                        nextMusic();
+                    }
+                });
+                break;
             default:
 
         }
     }
+
 
     private void ActionSeek() {
         mediaPlayer.seekTo(curentPosition);
@@ -193,14 +221,19 @@ public class MyService extends Service {
 
     private void preMusic() {
         if (crentIndex > 0) {
-            crentIndex -= 1;
-            if (songList != null && !songList.isEmpty()) {
-                msong = songList.get(crentIndex);
+            crentIndex = (crentIndex - 1) % songList.size();
+            msong = songList.get(crentIndex);
+            if (msong != null) {
                 isPlayMusic = true;
                 sendNotification(msong);
                 startMusic(msong);
                 sendActiontoActivity(ACTION_PRE);
                 sendAationtoDetailActivity(RESTART_ANIMATION);
+
+                Intent broadcastIntent = new Intent(ACTION_UPDATE_POSITION);
+                broadcastIntent.putExtra("current_position", 0);
+                broadcastIntent.putExtra("media_duration", msong.getDuration());
+                LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(broadcastIntent);
 
             } else {
                 System.out.println("Null roiif ");
@@ -212,7 +245,7 @@ public class MyService extends Service {
     private void nextMusic() {
 
         if (crentIndex < songList.size()) {
-            crentIndex += 1;
+            crentIndex = (crentIndex + 1) % songList.size();
             Song newsong = songList.get(crentIndex);
             if (newsong != null) {
                 isPlayMusic = true;
@@ -221,6 +254,12 @@ public class MyService extends Service {
                 startMusic(msong);
                 sendActiontoActivity(ACTION_NEXT);
                 sendAationtoDetailActivity(RESTART_ANIMATION);
+
+                Intent broadcastIntent = new Intent(ACTION_UPDATE_POSITION);
+                broadcastIntent.putExtra("current_position", 0);
+                broadcastIntent.putExtra("media_duration", msong.getDuration());
+                LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(broadcastIntent);
+
             }
         } else {
             Log.i("songlist", "jkkj");
@@ -272,7 +311,7 @@ public class MyService extends Service {
         bundle.putSerializable("curSong", song);
         bundle.putSerializable("SuggestSong", (Serializable) songList);
         bundle.putInt("index", crentIndex);
-        bundle.putInt("k",k);
+        bundle.putInt("k", k);
         intent.putExtras(bundle);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
@@ -393,6 +432,9 @@ public class MyService extends Service {
         intent.putExtra("animation_manager", action);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
+
+
+
 
 
     @Override

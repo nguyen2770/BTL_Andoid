@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (ID == R.id.search) {
                 replaceDataFragment(new SearchFragment());
             } else if (ID == R.id.love) {
-                replaceFragment(new LoveFragment());
+                replaceDataFragment(new LoveFragment());
             } else if (ID == R.id.user) {
                 replaceFragment(new UserFragment());
             }
@@ -283,6 +283,10 @@ public class MainActivity extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putSerializable("curSong", curSong);
         bundle.putSerializable("SuggestSong", (Serializable) songSuggest);
+        int index = songSuggest.indexOf(curSong);
+        if(index > 0){
+            bundle.putInt("index", index);
+        }
         intent.putExtras(bundle);
         startActivity(intent);
     }

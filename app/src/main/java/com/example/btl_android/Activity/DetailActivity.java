@@ -1,5 +1,7 @@
 package com.example.btl_android.Activity;
 
+import static com.example.btl_android.MyService.ACTION_AUTONEXT;
+import static com.example.btl_android.MyService.ACTION_REPLAY;
 import static com.example.btl_android.MyService.ACTION_UPDATE_POSITION;
 
 import android.annotation.SuppressLint;
@@ -8,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +27,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
+import com.example.btl_android.Database.DBManager;
 import com.example.btl_android.MyService;
 import com.example.btl_android.R;
 import com.example.btl_android.modal.Song;
@@ -37,7 +41,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class DetailActivity extends AppCompatActivity {
 
-    ImageView imgv_play, imgv_pre, imgv_next, img_back;
+    ImageView imgv_play, imgv_pre, imgv_next, img_back, img_act, imgv_fav;
     CircleImageView img_DetailImage;
     TextView txt_DetailNameSong, txt_DetailNameTG, txt_playerPosition, txt_playerDuration;
     SeekBar seekBarTime;
@@ -46,7 +50,7 @@ public class DetailActivity extends AppCompatActivity {
     private int currentSongIndex;
     private SongManager songManager = new SongManager();
 
-    private boolean isPlaying;
+    private boolean isPlaying, isLooping = true;
 
     private BroadcastReceiver positionReceiver, Animation_manager, setDataActivity;
 
@@ -77,7 +81,7 @@ public class DetailActivity extends AppCompatActivity {
         onClickNext();
         onClickPause_Start();
         onClickBack();
-
+        onClickAct();
         // gửi vị trí thanh seekbar khi tua
         seekBarmanager();
 
@@ -85,19 +89,40 @@ public class DetailActivity extends AppCompatActivity {
         AnimationManager();
 
 
-
-
-        if(songList != null){
+        if (songList != null) {
             Log.d("onCreate: ", "ko null");
         }
 
+        // đổi icon yêu thích của các bài hát
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String userIdString = sharedPreferences.getString("userId", "");
+        String a = "";
 
+        if (!userIdString.equals(a)) {
+            int userId = Integer.parseInt(userIdString);
+            updateFavoriteIcon(userId, currentSong.getId());
+            onClickFavorite();
+        }
 
 
     }
 
-    private void handLayoutMusic(int action){
-        switch (action){
+    private void onClickAct() {
+        img_act.setOnClickListener(view -> {
+            if (isLooping) {
+                img_act.setImageResource(R.drawable.baseline_shuffle_24);
+                isLooping = false;
+                sendActionToService(ACTION_AUTONEXT);
+            } else {
+                img_act.setImageResource(R.drawable.baseline_repeat_24);
+                isLooping = true;
+                sendActionToService(ACTION_REPLAY);
+            }
+        });
+    }
+
+    private void handLayoutMusic(int action) {
+        switch (action) {
             case MyService.ACTION_PAUSE:
                 setStatusButtonPlayOrPause();
                 break;
@@ -116,10 +141,10 @@ public class DetailActivity extends AppCompatActivity {
 
     }
 
-    private void setStatusButtonPlayOrPause(){
-        if(isPlaying){
+    private void setStatusButtonPlayOrPause() {
+        if (isPlaying) {
             imgv_play.setImageResource(R.drawable.baseline_pause_circle_outline_24);
-        }else{
+        } else {
             imgv_play.setImageResource(R.drawable.baseline_play_circle_outline_24);
         }
     }
@@ -127,11 +152,11 @@ public class DetailActivity extends AppCompatActivity {
     // xử lý sự kiện dừng bài hát
     private void onClickPause_Start() {
 
-        imgv_play.setOnClickListener(v->{
-            if(isPlaying){
+        imgv_play.setOnClickListener(v -> {
+            if (isPlaying) {
                 imgv_play.setImageResource(R.drawable.baseline_play_circle_outline_24);
                 sendActionToService(MyService.ACTION_PAUSE);
-            }else{
+            } else {
                 imgv_play.setImageResource(R.drawable.baseline_pause_circle_outline_24);
                 sendActionToService(MyService.ACTION_RESUME);
             }
@@ -142,7 +167,7 @@ public class DetailActivity extends AppCompatActivity {
 
     // xử lý sự kiện next sang bài hát khác
     private void onClickNext() {
-        imgv_next.setOnClickListener(v->{
+        imgv_next.setOnClickListener(v -> {
             sendActionToService(MyService.ACTION_NEXT);
         });
 
@@ -150,13 +175,13 @@ public class DetailActivity extends AppCompatActivity {
 
     // xử lý sự kiện click vào nút quay lại bài hát trước
     private void onClickPre() {
-        imgv_pre.setOnClickListener(v->{
+        imgv_pre.setOnClickListener(v -> {
             sendActionToService(MyService.ACTION_PRE);
         });
 
     }
 
-    private void onClickBack(){
+    private void onClickBack() {
         img_back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -165,8 +190,44 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
+    private void toggleFavorite(int userId, String songId) {
+        DBManager dbManager = new DBManager(this); // Khởi tạo DBManager với context
+        dbManager.open(); // Mở kết nối tới cơ sở dữ liệu
 
-    private void mappingID(){
+        if (dbManager.isFavoriteSong(userId, songId)) {
+            dbManager.removeFavoriteSong(userId, songId);
+            imgv_fav.setImageResource(R.drawable.baseline_favorite_border_24); // Cập nhật icon
+        } else {
+            dbManager.addFavoriteSong(userId, songId);
+            imgv_fav.setImageResource(R.drawable.baseline_favorite_24); // Cập nhật icon
+        }
+
+        dbManager.close(); // Đóng kết nối sau khi thực hiện xong
+    }
+
+
+    private void onClickFavorite() {
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        int currentUserId = Integer.parseInt(sharedPreferences.getString("userId", null)); // Lấy ID của người dùng
+
+        imgv_fav.setOnClickListener(v -> toggleFavorite(currentUserId, currentSong.getId()));
+    }
+
+    private void updateFavoriteIcon(int userId, String songId) {
+        DBManager dbManager = new DBManager(this);
+        dbManager.open();
+
+        if (dbManager.isFavoriteSong(userId, songId)) {
+            imgv_fav.setImageResource(R.drawable.baseline_favorite_24); // Đổi icon thành yêu thích
+        } else {
+            imgv_fav.setImageResource(R.drawable.baseline_favorite_border_24); // Đổi icon thành không yêu thích
+        }
+
+        dbManager.close();
+    }
+
+
+    private void mappingID() {
         img_DetailImage = findViewById(R.id.img_detaiImage);
         txt_DetailNameSong = findViewById(R.id.txt_detalNameSong);
         txt_DetailNameTG = findViewById(R.id.txt_detalNameTG);
@@ -177,48 +238,50 @@ public class DetailActivity extends AppCompatActivity {
         imgv_play = findViewById(R.id.imgv_play);
         seekBarTime = findViewById(R.id.seekBarTime);
         img_back = findViewById(R.id.imageButton);
+        img_act = findViewById(R.id.img_act);
+        imgv_fav = findViewById(R.id.imgv_fav);
     }
 
 
     // lấy data được truyền qua từ mainActivity
-    private void getData(){
+    private void getData() {
         Bundle bundle = getIntent().getExtras();
-        if(bundle != null){
+        if (bundle != null) {
             currentSong = (Song) bundle.getSerializable("curSong");
             songList = (List<Song>) bundle.getSerializable("SuggestSong");
-            currentSongIndex = bundle.getInt("index",0);
+            currentSongIndex = bundle.getInt("index", 0);
             Log.d("Setdata: ", "index " + currentSongIndex);
-            if(currentSong != null){
+            if (currentSong != null) {
                 //setSongDetail(currentSong);
                 Log.d("Setdata: ", "song khong null");
-            }else{
+            } else {
                 Log.d("Setdata: ", "song null");
             }
             setSongDetail(songList.get(currentSongIndex));
 
-            int tmp = bundle.getInt("k",0);
-            if(tmp == 1){
+            int tmp = bundle.getInt("k", 0);
+            if (tmp == 1) {
                 isPlaying = true;
                 setStatusButtonPlayOrPause();
                 startAnimationMusic();
-            }else if(tmp == 2){
+            } else if (tmp == 2) {
                 isPlaying = false;
                 setStatusButtonPlayOrPause();
                 stopAnimationMusic();
             }
 
-            if(songList != null){
+            if (songList != null) {
                 Log.d("Setdata: ", "songlist ko null");
-            }else{
+            } else {
                 Log.d("Setdata: ", "songlist null");
             }
-        }else{
+        } else {
             Log.d("Setdata: ", "bundal null");
         }
     }
 
     // set data lên activity
-    private void setSongDetail(Song song){
+    private void setSongDetail(Song song) {
         String imageUrl = song.getImage();
         Glide.with(img_DetailImage.getContext())
                 .load(imageUrl)
@@ -243,7 +306,7 @@ public class DetailActivity extends AppCompatActivity {
 
 
     // chạy animation cho quay vòng tròn
-    private void startAnimationMusic(){
+    private void startAnimationMusic() {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -256,12 +319,12 @@ public class DetailActivity extends AppCompatActivity {
                 .setInterpolator(new LinearInterpolator()).start();
     }
 
-    private void stopAnimationMusic(){
+    private void stopAnimationMusic() {
         img_DetailImage.animate().cancel();
     }
 
     // quản lý thanh seek bar
-    private void seekBarmanager(){
+    private void seekBarmanager() {
         // gửi đi vị trí của thanh seekbar sau khi tua sang service
         seekBarTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -271,8 +334,8 @@ public class DetailActivity extends AppCompatActivity {
                 if (b) {
                     //mediaPlayer.seekTo(i);
                     Intent intent = new Intent(DetailActivity.this, MyService.class);
-                    intent.putExtra("actionMusicService",MyService.ACTION_SEEK);
-                    intent.putExtra("position_seekbar",i);
+                    intent.putExtra("actionMusicService", MyService.ACTION_SEEK);
+                    intent.putExtra("position_seekbar", i);
                     startService(intent);
 
                     // seekBarTime.setProgress(i);
@@ -293,30 +356,30 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
-    private void Start_Service(){
+    private void Start_Service() {
         Intent MyIntent = new Intent(DetailActivity.this, MyService.class);
         Bundle bundle = new Bundle();
-        bundle.putInt("curentIndex",currentSongIndex);
-        bundle.putSerializable("song_list",(Serializable) songList);
-        bundle.putBoolean("isPlaying",isPlaying);
+        bundle.putInt("curentIndex", currentSongIndex);
+        bundle.putSerializable("song_list", (Serializable) songList);
+        bundle.putBoolean("isPlaying", isPlaying);
         MyIntent.putExtras(bundle);
         startService(MyIntent);
     }
 
-    private void Stop_Service(){
+    private void Stop_Service() {
         Intent MyIntent = new Intent(this, Service.class);
         stopService(MyIntent);
     }
 
     // nhận data từ service
-    private void SetDataForActivity(){
+    private void SetDataForActivity() {
         setDataActivity = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(intent.getAction().equals("send_data_to_activity")){
+                if (intent.getAction().equals("send_data_to_activity")) {
                     Bundle bundle = intent.getExtras();
-                    if(bundle != null){
-                        currentSong =(Song) bundle.getSerializable("object_song");
+                    if (bundle != null) {
+                        currentSong = (Song) bundle.getSerializable("object_song");
 //                        currentSongIndex = bundle.getInt("index", 0);
 //                        songList = (List<Song>) bundle.getSerializable("song_list");
 //                        currentSong = songList.get(currentSongIndex);
@@ -345,7 +408,10 @@ public class DetailActivity extends AppCompatActivity {
                     // Xử lý dữ liệu vị trí hiện tại
                     seekBarTime.setProgress(currentPosition);
                     seekBarTime.setMax(mediaDuration);
-
+                    Log.e("end mussic: ", mediaDuration - currentPosition + "");
+//                    if(mediaDuration - currentPosition <= 0){
+//                        sendActionToService(ACTION_STATUS);
+//                    }
                     String formattedCurrentPosition = convertFormat(currentPosition / 1000); // Chuyển từ mili giây sang giây
                     txt_playerPosition.setText(formattedCurrentPosition);
                 }
@@ -356,23 +422,23 @@ public class DetailActivity extends AppCompatActivity {
                 .registerReceiver(positionReceiver, new IntentFilter(ACTION_UPDATE_POSITION));
     }
 
-    private void AnimationManager(){
+    private void AnimationManager() {
         Animation_manager = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(intent.getAction().equals(MyService.SETUP_ANIMATIONMUSIC)){
-                    int manager = intent.getIntExtra("animation_manager",0);
-                    switch (manager){
+                if (intent.getAction().equals(MyService.SETUP_ANIMATIONMUSIC)) {
+                    int manager = intent.getIntExtra("animation_manager", 0);
+                    switch (manager) {
                         case MyService.START_ANIMATION:
-                            Log.e( "start animation ","call" );
+                            Log.e("start animation ", "call");
                             startAnimationMusic();
                             break;
                         case MyService.STOP_ANIMATION:
-                            Log.e( "stop animation ","call" );
+                            Log.e("stop animation ", "call");
                             stopAnimationMusic();
                             break;
                         case MyService.RESTART_ANIMATION:
-                            Log.e( "restart animation ","call" );
+                            Log.e("restart animation ", "call");
                             img_DetailImage.setRotation(0);
                             startAnimationMusic();
                             break;
@@ -386,8 +452,8 @@ public class DetailActivity extends AppCompatActivity {
                 .registerReceiver(Animation_manager, new IntentFilter(MyService.SETUP_ANIMATIONMUSIC));
     }
 
-    private void sendActionToService(int action){
-        Intent intent = new Intent(this,MyService.class);
+    private void sendActionToService(int action) {
+        Intent intent = new Intent(this, MyService.class);
         intent.putExtra("actionMusicService", action);
         startService(intent);
     }

@@ -22,25 +22,30 @@
 
     <TextView
         android:id="@+id/txt_detalNameSong"
-        android:layout_width="159dp"
-        android:layout_height="21dp"
+        android:layout_width="233dp"
+        android:layout_height="23dp"
+        android:layout_marginStart="42dp"
         android:layout_marginTop="36dp"
+        android:layout_marginEnd="36dp"
         android:text="Title music"
+        android:textAlignment="center"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/imgv_fav"
+        app:layout_constraintStart_toEndOf="@+id/img_act"
         app:layout_constraintTop_toBottomOf="@+id/img_detaiImage" />
 
     <TextView
         android:id="@+id/txt_detalNameTG"
-        android:layout_width="133dp"
-        android:layout_height="21dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="232dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="41dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="38dp"
         android:text="name tg"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.453"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@+id/imgv_fav"
+        app:layout_constraintStart_toEndOf="@+id/img_act"
         app:layout_constraintTop_toBottomOf="@+id/txt_detalNameSong" />
 
     <SeekBar
@@ -89,13 +94,13 @@
         android:id="@+id/txt_playerPoisition"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="472dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="14dp"
         android:text="00:00"
         app:layout_constraintEnd_toStartOf="@+id/seekBarTime"
-        app:layout_constraintHorizontal_bias="0.3"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/img_act" />
 
     <TextView
         android:id="@+id/txt_playerDuration"
@@ -115,6 +120,29 @@
         android:layout_height="27dp"
 
         app:srcCompat="@drawable/back_icon"
-        tools:layout_editor_absoluteY="4dp" />
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="36dp" />
+
+    <ImageView
+        android:id="@+id/img_act"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="44dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/img_detaiImage"
+        app:srcCompat="@drawable/baseline_repeat_24" />
+
+    <ImageView
+        android:id="@+id/imgv_fav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/txt_playerDuration"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/img_detaiImage"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/baseline_favorite_border_24" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
